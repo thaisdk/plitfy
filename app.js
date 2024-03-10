@@ -4,25 +4,36 @@ const querystring = require('querystring');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const crypto = require('crypto');
+const cors = require('cors');
 require('dotenv').config();
 
 
 const client_id = process.env.SPOTIFY_CLIENT_ID;
-const client_secret = 'a155600175bc46ae89e07df83e15487f';
-const redirect_uri = 'http://localhost:8888/callback';
+const client_secret = process.env.SPOTIFY_CLIENT_SECRET;
+const redirect_uri = process.env.REDIRECT_URL;
 const stateKey = 'spotify_auth_state';
 
 const idCounts = {};
 
 const app = express();
 
-app.use(express.static(__dirname + '/public'))
-    .use(cookieParser())
-    .use(session({
-        secret: 'your_secret_key',
-        resave: true,
-        saveUninitialized: true
-    }));
+const corsOptions = {
+    origin: '*',
+    credentials: true,
+};
+
+app.use(cors(corsOptions));
+
+
+app.use(express.static(__dirname + '/public'));
+
+app.use(cookieParser());
+
+app.use(session({
+    secret: 'your_secret_key',
+    resave: true,
+    saveUninitialized: true
+}));
 
 app.get('/', (req, res) => {
     res.redirect('/current-playing');
@@ -58,9 +69,9 @@ app.get('/current-playing', (req, res) => {
         if (!error && response.statusCode === 200) {
             if (body) {
                 res.send(body);
-            } else {
-                res.send({ not_current_playing: 'nada' })
             }
+        } else if (!error && response.statusCode === 204) {
+            res.send({ current_playing: "None" })
         } else {
             res.status(response.statusCode).send({ error: 'Failed to fetch currently playing track' });
         }
@@ -78,8 +89,14 @@ app.get('/count-plays', (req, res) => {
 });
 
 app.get('/top-plays', (req, res) => {
-    res.json(idCounts);
+    const sortedIdCounts = Object.entries(idCounts).sort((a, b) => b[1] - a[1]);
+    const slicedEntries = sortedIdCounts.slice(0, 3);
+    const slicedCountsObject = Object.fromEntries(slicedEntries);
+
+    res.json(slicedCountsObject);
 });
+
+
 
 app.get('/get-count', (req, res) => {
     const { id } = req.query;
@@ -118,7 +135,6 @@ app.get('/callback', (req, res) => {
         request.post(authOptions, (error, response, body) => {
             if (!error && response.statusCode === 200) {
                 req.session.access_token = body.access_token;
-                // Redirect back to the previously requested URL (either '/current-playing' or '/top-playing')
                 const redirectUrl = req.session.returnTo || '/';
                 res.redirect(redirectUrl);
             } else {
@@ -131,8 +147,9 @@ app.get('/callback', (req, res) => {
     }
 });
 
-app.listen(8888, () => {
-    console.log('Server is running on port 8888');
+
+app.listen(process.env.PORT, () => {
+    console.log(`Server is running on port ${process.env.PORT}`);
 });
 
 function generateRandomString(length) {

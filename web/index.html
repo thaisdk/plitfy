@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&family=Sarabun:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <title>Plitfy</title>
+</head>
+
+<body>
+    <img src="assets/images/logo.svg" class="mainLogo" />
+    <h1 class="title">Aqui estão suas playlists mais ouvidas!</h1>
+    <div class="mainBody">
+        <div style="width: 100%"></div>
+        <div class="podios">
+            <div class="podioSong">
+                <img width="150px" id="podio-2-cover" class="clara" />
+                <p id="podio-2-title">Nome da playlist</p>
+                <img src="assets/images/2.svg" class="clara" />
+            </div>
+
+            <div class="podioSong">
+                <img width="150px" id="podio-1-cover" src="assets/images/clara.svg" class="clara" />
+                <p id="podio-1-title">Nome da playlist</p>
+                <img src="assets/images/1.svg" class="clara" />
+            </div>
+
+            <div class="podioSong">
+                <img width="150px" id="podio-3-cover" src="assets/images/clara.svg" class="clara" />
+                <p id="podio-3-title">Nome da playlist</p>
+                <img src="assets/images/3.svg" class="clara" />
+            </div>
+        </div>
+        <div style="width: 100%; align-self: flex-end; display: flex; flex-direction: column; align-items: flex-end">
+            <p style="width: 350px; margin: 0">Escutando agora</p>
+            <div
+                style="width: 350px; background-color: #2A2A2A; display: flex; justify-content: center; align-items: center; flex-direction: column; padding-top: 20px">
+                <img width="300px" id="current-playing-cover" src="assets/images/clara.svg" />
+                <p style="color: white" id="current-playing"></p>
+            </div>
+        </div>
+    </div>
+</body>
+
+<script src="index.js">
+</script>
+
+</html>

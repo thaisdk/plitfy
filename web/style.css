@@ -1,0 +1,42 @@
+body {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: "Sarabun", sans-serif;
+}
+.mainLogo {
+    margin: 12px 0;
+    width: 128px;
+}
+
+h1 {
+    font-weight: bold;
+    margin-bottom: 48px;
+    margin-top: 0;
+}
+
+p {
+    font-weight: normal;
+}
+
+.podioSong {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.podios {
+    display: flex;
+    align-items: flex-end;
+}
+
+
+.mainBody {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+}
