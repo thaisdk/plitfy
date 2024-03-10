@@ -1,6 +1,9 @@
-const clientId = '9b82e239a7ee44288df30a7cba3a993e';
+const clientId = 'changethat';
 const redirectUri = 'http://localhost:8080';
 const scopes = 'user-read-private user-read-email user-read-recently-played user-read-currently-playing user-top-read';
+
+var accessToken = '';
+
 
 function authorize() {
   const authorizeUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}&response_type=token`;
@@ -66,12 +69,8 @@ function fetchItemDetails(itemUri, accessToken) {
     });
 }
 
-function fetchTopPlaysAndDetails(accessToken) {
-  fetch('http://localhost:8888/top-plays', {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`
-    }
-  })
+function fetchTopPlaysAndDetails() {
+  fetch('http://localhost:8888/top-plays')
     .then(response => {
       if (response.ok) {
         return response.json();
@@ -80,6 +79,7 @@ function fetchTopPlaysAndDetails(accessToken) {
       }
     })
     .then(data => {
+      console.log(data);
       const itemURIs = Object.keys(data);
       const promises = itemURIs.map((itemUri, index) => {
         return fetchItemDetails(itemUri, accessToken)
@@ -102,56 +102,40 @@ function fetchTopPlaysAndDetails(accessToken) {
     });
 }
 
-function fetchCurrentPlaying(accessToken) {
-  fetch('http://localhost:8888/last-played', {
-    headers: {
-      'Authorization': `Bearer ${accessToken}`
+function fetchCurrentPlaying(event) {
+  const lastPlayedItemUri = event.data;
+  console.log("LAST PLAYED", lastPlayedItemUri);
+  fetchItemDetails(lastPlayedItemUri, accessToken).then(itemDetails => {
+    const trackName = itemDetails.name || 'None';
+    var images = [];
+    if (itemDetails.album) {
+      images = itemDetails.album.images;
+    } else {
+      images = itemDetails.images;
     }
+    const imageUrl = images.length > 0 ? images[0].url : 'assets/images/clara.svg';
+    console.log("itemdetails", itemDetails);
+    updateCurrentPlaying(trackName, imageUrl);
   })
-    .then(response => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        throw new Error('Failed to fetch last played item URI');
-      }
-    })
-    .then(data => {
-      const lastPlayedItemUri = data.lastPlayed;
-      return fetchItemDetails(lastPlayedItemUri, accessToken);
-    })
-    .then(itemDetails => {
-      console.log(itemDetails);
-      const trackName = itemDetails.name || 'None';
-      var images = [];
-      if (itemDetails.album) {
-        images = itemDetails.album.images;
-      } else {
-        images = itemDetails.images;
-      }
-      const imageUrl = images.length > 0 ? images[0].url : 'assets/images/clara.svg';
-      updateCurrentPlaying(trackName, imageUrl);
-    })
-    .catch(error => {
-      console.error('Error fetching current playing track:', error);
-    });
 }
 
+const ws = new WebSocket('ws://localhost:8000');
 
-function pollCurrentPlaying(accessToken) {
-  setInterval(() => {
-    fetchCurrentPlaying(accessToken);
-    fetchTopPlaysAndDetails(accessToken);
-  }, 5000);
-}
+ws.onopen = function () {
+  console.log('Connected to WebSocket server');
+};
+
+ws.onmessage = function (event) {
+  fetchCurrentPlaying(event);
+  fetchTopPlaysAndDetails();
+};
 
 document.addEventListener('DOMContentLoaded', () => {
   const params = new URLSearchParams(window.location.hash.substring(1));
-  const accessToken = params.get('access_token');
+  accessToken = params.get('access_token');
 
   if (accessToken) {
-    fetchTopPlaysAndDetails(accessToken);
-    fetchCurrentPlaying(accessToken);
-    pollCurrentPlaying(accessToken);
+    console.log("Authenticado")
   } else {
     authorize();
   }
