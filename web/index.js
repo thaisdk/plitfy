@@ -103,8 +103,7 @@ function fetchTopPlaysAndDetails(accessToken) {
 }
 
 function fetchCurrentPlaying(accessToken) {
-  const apiUrl = 'https://api.spotify.com/v1/me/player/currently-playing';
-  fetch(apiUrl, {
+  fetch('http://localhost:8888/last-played', {
     headers: {
       'Authorization': `Bearer ${accessToken}`
     }
@@ -113,12 +112,22 @@ function fetchCurrentPlaying(accessToken) {
       if (response.ok) {
         return response.json();
       } else {
-        throw new Error('Response not OK');
+        throw new Error('Failed to fetch last played item URI');
       }
     })
     .then(data => {
-      const trackName = data.item ? data.item.name : 'None';
-      const images = data.item ? data.item.album.images : [];
+      const lastPlayedItemUri = data.lastPlayed;
+      return fetchItemDetails(lastPlayedItemUri, accessToken);
+    })
+    .then(itemDetails => {
+      console.log(itemDetails);
+      const trackName = itemDetails.name || 'None';
+      var images = [];
+      if (itemDetails.album) {
+        images = itemDetails.album.images;
+      } else {
+        images = itemDetails.images;
+      }
       const imageUrl = images.length > 0 ? images[0].url : 'assets/images/clara.svg';
       updateCurrentPlaying(trackName, imageUrl);
     })
@@ -126,6 +135,7 @@ function fetchCurrentPlaying(accessToken) {
       console.error('Error fetching current playing track:', error);
     });
 }
+
 
 function pollCurrentPlaying(accessToken) {
   setInterval(() => {

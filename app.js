@@ -14,6 +14,7 @@ const redirect_uri = process.env.REDIRECT_URL;
 const stateKey = 'spotify_auth_state';
 
 const idCounts = {};
+var lastPlayed = '';
 
 const app = express();
 
@@ -78,6 +79,10 @@ app.get('/current-playing', (req, res) => {
     });
 });
 
+app.get('/last-played', (req, res) => {
+    res.json({ lastPlayed })
+});
+
 app.get('/count-plays', (req, res) => {
     const { id } = req.query;
     if (!id) {
@@ -85,7 +90,17 @@ app.get('/count-plays', (req, res) => {
     }
 
     idCounts[id] = (idCounts[id] || 0) + 1;
+    lastPlayed = id;
     res.json({ [id]: idCounts[id] });
+});
+
+app.get('/get-plays', (req, res) => {
+    const { id } = req.query;
+    if (!id) {
+        return res.status(400).json({ error: 'ID is required' });
+    }
+
+    res.json({ count: idCounts[id] });
 });
 
 app.get('/top-plays', (req, res) => {
