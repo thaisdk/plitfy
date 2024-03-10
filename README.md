@@ -1,2 +1,1 @@
-# plitfy-back
-Plitfy backend 
+# Plitfy
