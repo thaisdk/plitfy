@@ -130,6 +130,7 @@ function fetchCurrentPlaying(accessToken) {
 function pollCurrentPlaying(accessToken) {
   setInterval(() => {
     fetchCurrentPlaying(accessToken);
+    fetchTopPlaysAndDetails(accessToken);
   }, 5000);
 }
 
