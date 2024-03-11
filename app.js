@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const crypto = require('crypto');
 const cors = require('cors');
+const WebSocket = require('ws');
 require('dotenv').config();
 
 
@@ -17,6 +18,7 @@ const idCounts = {};
 var lastPlayed = '';
 
 const app = express();
+
 
 const corsOptions = {
     origin: '*',
@@ -35,6 +37,25 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }));
+
+
+const wss = new WebSocket.Server({ port: 8000 });
+
+wss.on('connection', function connection(ws) {
+    console.log('A new client connected');
+
+    ws.on('close', function close() {
+        console.log('Client disconnected');
+    });
+});
+
+function sendMessageToClients(message) {
+    wss.clients.forEach(function each(client) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(message);
+        }
+    });
+}
 
 app.get('/', (req, res) => {
     res.redirect('/current-playing');
@@ -89,9 +110,12 @@ app.get('/count-plays', (req, res) => {
         return res.status(400).json({ error: 'ID is required' });
     }
 
-    idCounts[id] = (idCounts[id] || 0) + 1;
+    if (idCounts[id] === undefined || idCounts[id] < 9) {
+        idCounts[id] = (idCounts[id] || 0) + 1;
+    }
     lastPlayed = id;
     res.json({ [id]: idCounts[id] });
+    sendMessageToClients(id);
 });
 
 app.get('/get-plays', (req, res) => {
@@ -110,8 +134,6 @@ app.get('/top-plays', (req, res) => {
 
     res.json(slicedCountsObject);
 });
-
-
 
 app.get('/get-count', (req, res) => {
     const { id } = req.query;
@@ -161,7 +183,6 @@ app.get('/callback', (req, res) => {
         });
     }
 });
-
 
 app.listen(process.env.PORT, () => {
     console.log(`Server is running on port ${process.env.PORT}`);
